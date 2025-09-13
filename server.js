@@ -2,7 +2,7 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import connectDB from "./src/config/db.js";
-import heritageRoutes from "./src/routes/HeritageRoutes.js";
+import heritageRoutes from "./src/routes/heritageRoutes.js";
 import userRoutes from "./src/routes/userRoutes.js";
 import adminRoutes from "./src/routes/adminRoutes.js";
 import aiRoutes from "./src/routes/aiRoutes.js";
