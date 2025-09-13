@@ -1,15 +1,15 @@
 import mongoose from "mongoose";
-import { DB_NAME } from "./constants.js";
 
+const MONGO_URI = "mongodb+srv://learnonix:0zJqgmtVKkGrYTBV@bot.xujbjsz.mongodb.net/heritageDB";
 
 const connectDB = async () => {
     try {
-        const connectionInstance = await mongoose.connect(`${process.env.MONGODB_URI}/${DB_NAME}`)
-        console.log(`\n MongoDB connected !! DB HOST: ${connectionInstance.connection.host}`);
-    } catch (error) {
-        console.log("MONGODB connection FAILED ", error);
-        process.exit(1)        
+        await mongoose.connect(MONGO_URI);
+        console.log("✅ MongoDB connected");
+    } catch (err) {
+        console.error("❌ MongoDB connection failed:", err);
+        process.exit(1);
     }
-}
+};
 
 export default connectDB;
