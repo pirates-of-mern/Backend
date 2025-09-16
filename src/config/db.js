@@ -1,10 +1,13 @@
 import mongoose from "mongoose";
+import dotenv from "dotenv";
 
-const MONGO_URI = "mongodb+srv://learnonix:0zJqgmtVKkGrYTBV@bot.xujbjsz.mongodb.net/heritageDB";
+dotenv.config();
+
+const url = process.env.MONGO_URI;
 
 const connectDB = async () => {
     try {
-        await mongoose.connect(MONGO_URI);
+        await mongoose.connect(url);
         console.log("✅ MongoDB connected");
     } catch (err) {
         console.error("❌ MongoDB connection failed:", err);
