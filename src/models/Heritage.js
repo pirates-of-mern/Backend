@@ -80,4 +80,4 @@ heritageSchema.pre("save", function (next) {
     next();
 });
 
-export default mongoose.model("HeritageSite", heritageSchema);
+export default mongoose.model("HeritageSite", heritageSchema,"heritagesites");

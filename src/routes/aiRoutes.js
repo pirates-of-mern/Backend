@@ -1,33 +1,29 @@
-// backend/routes/aiRoutes.js
 import express from "express";
-import axios from "axios";
+import { searchHeritage } from "../services/heritageService.js";
+import { askGemini } from "../services/geminiService.js";
 
 const router = express.Router();
 
-// Text AI
-router.get("/text", async (req, res) => {
-    const { model, q } = req.query;
+router.post("/chat", async (req, res) => {
+    const { question } = req.body;
+
     try {
-        const response = await axios.get(
-            `https://gemini-api-flame.vercel.app/${model}?q=${encodeURIComponent(q)}`
-        );
-        res.json(response.data);
+        // 1. Search relevant heritage sites from DB
+        const heritageDocs = await searchHeritage(question);
+
+        // 2. Pass data + user query to Gemini
+        const answer = await askGemini(question, heritageDocs);
+
+        res.json({ answer, heritageDocs });
     } catch (err) {
-        res.status(500).json({ error: "AI Text request failed" });
+        console.error("Error in /chat:", err);
+        res.status(500).json({ error: "Internal server error" });
     }
 });
 
-// Image AI
-router.get("/image", async (req, res) => {
-    const { prompt } = req.query;
-    try {
-        const response = await axios.get(
-            `https://nsfw.drsudo.workers.dev/?img=${encodeURIComponent(prompt)}`
-        );
-        res.json(response.data);
-    } catch (err) {
-        res.status(500).json({ error: "AI Image request failed" });
-    }
+router.get("/chat", (req, res) => {
+    res.json({ message: "Chat endpoint is alive. Use POST with {question}." });
 });
+
 
 export default router;
