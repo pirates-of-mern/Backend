@@ -6,12 +6,15 @@ import heritageRoutes from "./src/routes/heritageRoutes.js";
 import userRoutes from "./src/routes/userRoutes.js";
 import adminRoutes from "./src/routes/adminRoutes.js";
 import aiRoutes from "./src/routes/aiRoutes.js";
+import { setupSwagger } from "./swagger.js";
 
 dotenv.config();
 
 const app = express();
 app.use(cors());
 app.use(express.json());
+
+setupSwagger(app);
 
 connectDB();
 

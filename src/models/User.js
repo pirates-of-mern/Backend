@@ -1,6 +1,10 @@
 import mongoose from "mongoose";
-import bcrypt from "bcryptjs";
-import crypto from "crypto";
+import {
+    hashPasswordMiddleware,
+    matchPassword,
+    generateVerificationToken,
+    generatePasswordResetToken
+} from "./user.methods.js";
 
 const userSchema = new mongoose.Schema(
     {
@@ -23,96 +27,51 @@ const userSchema = new mongoose.Schema(
             type: String,
             required: [true, "Password is required"],
             minlength: [6, "Password must be at least 6 characters long"],
-            select: false, 
+            select: false,
         },
+        isAdmin: { type: Boolean, default: false },
 
-        isAdmin: {
-            type: Boolean,
-            default: false,
-        },
         role: {
             type: String,
-            enum: ["user", "admin", "owner"], // only owner can promote/demote admins
+            enum: ["user", "admin", "owner"],
             default: "user",
         },
+
         permissions: {
-            manage_users: { type: Boolean, default: false },
-            manage_heritage: { type: Boolean, default: false },
-            manage_content: { type: Boolean, default: false },
+            type: [String], // flexible array
+            default: [],
         },
 
-        points: {
-            type: Number,
-            default: 0,
-        },
+        points: { type: Number, default: 0 },
 
-        // Email Verification
-        isVerified: {
-            type: Boolean,
-            default: false,
-        },
+        // Email verification
+        isVerified: { type: Boolean, default: false },
         verificationToken: String,
         verificationTokenExpires: Date,
 
-        // password resest krne ke liye
+        // Password reset
         resetPasswordToken: String,
         resetPasswordExpires: Date,
 
-        
-        loginAttempts: {
-            type: Number,
-            default: 0,
-        },
-        lockUntil: {
-            type: Date,
-        },
+        // Security (brute-force protection)
+        loginAttempts: { type: Number, default: 0 },
+        lockUntil: { type: Date },
 
-        date_joined: {
-            type: Date,
-            default: Date.now,
-        },
+        date_joined: { type: Date, default: Date.now },
     },
     { timestamps: true }
 );
 
+// 🔒 Middleware
+userSchema.pre("save", hashPasswordMiddleware);
 
-// 🔒 Middleware: Hash password before saving
+// 🔑 Methods
+userSchema.methods.matchPassword = matchPassword;
+userSchema.methods.generateVerificationToken = generateVerificationToken;
+userSchema.methods.generatePasswordResetToken = generatePasswordResetToken;
 
-userSchema.pre("save", async function (next) {
-    if (!this.isModified("password")) return next();
-    this.password = await bcrypt.hash(this.password, 12);
-    next();
-});
-
-
-// 🔑 Method: Compare password
-userSchema.methods.matchPassword = async function (enteredPassword) {
-    return await bcrypt.compare(enteredPassword, this.password);
-};
-
-
-// 📧 Method: Generate email verification token
-userSchema.methods.generateVerificationToken = function () {
-    const token = crypto.randomBytes(32).toString("hex");
-    this.verificationToken = crypto
-        .createHash("sha256")
-        .update(token)
-        .digest("hex");
-    this.verificationTokenExpires = Date.now() + 60 * 60 * 1000; // 1 hours ok with time
-    return token;
-};
-
-
-// 🔑 Method: Generate password reset token
-
-userSchema.methods.generatePasswordResetToken = function () {
-    const token = crypto.randomBytes(32).toString("hex");
-    this.resetPasswordToken = crypto
-        .createHash("sha256")
-        .update(token)
-        .digest("hex");
-    this.resetPasswordExpires = Date.now() + 15 * 60 * 1000;
-    return token;
+userSchema.methods.isAccountLocked = function () {
+    return this.lockUntil && this.lockUntil > Date.now();
 };
 
 export default mongoose.model("User", userSchema);

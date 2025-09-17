@@ -3,7 +3,7 @@ import User from "../models/User.js";
 // Promote a user to admin
 export const promoteToAdmin = async (req, res) => {
     try {
-        const { id } = req.params; // id of user to promote
+        const { id } = req.params;
         const requester = req.user;
 
         if (!requester) return res.status(401).json({ error: "Not authenticated" });
